@@ -170,14 +170,40 @@
     }
 
     /* Legend */
-    #legend {
+    #legend-wrap {
       padding: 10px 16px;
       flex-shrink: 0;
       border-bottom: 1px solid var(--border);
+    }
+
+    #legend-buttons {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 8px;
+    }
+
+    .legend-control-btn {
+      font-size: 10px;
+      font-family: 'DM Sans', sans-serif;
+      color: var(--accent);
+      cursor: pointer;
+      padding: 4px 8px;
+      border-radius: 4px;
+      border: 1px solid var(--accent);
+      background: transparent;
+      transition: all 0.15s;
+    }
+
+    .legend-control-btn:hover {
+      background: var(--accent);
+      color: white;
+    }
+
+    #legend {
       display: flex;
       flex-wrap: wrap;
       gap: 5px;
-      max-height: 100px;
+      max-height: 180px;
       overflow-y: auto;
     }
 
@@ -526,11 +552,22 @@
       .popup-contact-links {
         display: block;
         padding: 12px 14px;
-        border-top: 1px solid var(--border);
+        background: #f8f9fa;
+      }
+
+      .popup-contact-link {
+        font-size: 15px;
+        padding: 14px;
+        -webkit-tap-highlight-color: transparent;
       }
 
       .popup-details-toggle {
         display: block;
+        font-size: 13px;
+        font-weight: 500;
+        padding: 12px;
+        color: var(--accent);
+        -webkit-tap-highlight-color: transparent;
       }
 
       .popup-details {
@@ -542,12 +579,23 @@
       }
 
       .popup-body {
-        max-height: none;
+        max-height: 200px;
+        overflow-y: auto;
         padding: 12px 14px 8px;
+        -webkit-overflow-scrolling: touch;
+      }
+
+      .leaflet-popup-content-wrapper {
+        max-height: 70vh;
+        overflow: visible;
       }
 
       #legend {
-        max-height: 70px;
+        max-height: 80px;
+      }
+
+      #legend-buttons {
+        margin-bottom: 6px;
       }
 
       #filter-controls {
@@ -623,7 +671,13 @@
       </button>
     </div>
 
-    <div id="legend"></div>
+    <div id="legend-wrap">
+      <div id="legend-buttons">
+        <button type="button" class="legend-control-btn" id="select-all-cats">Select All</button>
+        <button type="button" class="legend-control-btn" id="clear-all-cats">Clear All</button>
+      </div>
+      <div id="legend"></div>
+    </div>
 
     <div id="result-count"></div>
     <div id="map-filter-note">Filtering to services visible on map</div>
@@ -686,24 +740,62 @@ var CSV_URL = 'https://raw.githubusercontent.com/kcredit/Refugee-map-test/refs/h
 // ═══════════════════════════════════════════════════════════════════════════
 
 // Category configuration with colors
+// NOTE: Multiple entries can map to the same "short" name for display purposes
 var CATEGORIES = {
+  // Information & Advice variants
   "Information & Advice": { color: "#2563eb", short: "Info & Advice" },
+  "Information": { color: "#2563eb", short: "Info & Advice" },
+
+  // Education
   "Education": { color: "#d97706", short: "Education" },
+
+  // Language Support
   "Language Support": { color: "#0891b2", short: "Language" },
+
+  // Wellbeing & Mental Health variants
   "Wellbeing & Mental Health": { color: "#7c3aed", short: "Mental Health" },
+  "Wellbeing": { color: "#7c3aed", short: "Mental Health" },
+
+  // Public Awareness & Activism variants (including typo in CSV)
   "Public Awareness & Activism": { color: "#ec4899", short: "Activism" },
   "Public Awareness & Activsm": { color: "#ec4899", short: "Activism" },
+
+  // Legal Advice
   "Legal Advice": { color: "#1e40af", short: "Legal" },
+
+  // Housing variants
   "Housing support": { color: "#0d9488", short: "Housing" },
   "Housing Support": { color: "#0d9488", short: "Housing" },
+  "Housing": { color: "#0d9488", short: "Housing" },
+
+  // Community & Family variants
   "Community & Family": { color: "#9333ea", short: "Community" },
+  "Community": { color: "#9333ea", short: "Community" },
+
+  // Youth Services
   "Youth Services": { color: "#f59e0b", short: "Youth" },
+
+  // Culture & the Arts
   "Culture & the Arts": { color: "#db2777", short: "Culture" },
+
+  // Employment & Training variants
   "Employment & Training": { color: "#16a34a", short: "Employment" },
+  "Employment support": { color: "#16a34a", short: "Employment" },
+  "Employment": { color: "#16a34a", short: "Employment" },
+
+  // Health Services
   "Health Services": { color: "#dc2626", short: "Health" },
+
+  // Emergency & Homelessness Support
   "Emergency & Homelessness Support (e.g. food, shelter, day services)": { color: "#b91c1c", short: "Emergency" },
+  "Emergency & Homelessness Support": { color: "#b91c1c", short: "Emergency" },
+
+  // Environment
   "Environment": { color: "#059669", short: "Environment" },
-  "Volunteering Opportunities": { color: "#6366f1", short: "Volunteering" }
+
+  // Volunteering variants
+  "Volunteering Opportunities": { color: "#6366f1", short: "Volunteering" },
+  "Volunteering": { color: "#6366f1", short: "Volunteering" }
 };
 
 var DEFAULT_COLOR = "#64748b";
@@ -959,7 +1051,18 @@ function makePopup(s) {
 }
 
 function togglePopupDetails(btn) {
-  var details = btn.nextElementSibling.querySelector('.popup-details');
+  // Find the details section - it's inside the next sibling (popup-body)
+  var popupBody = btn.nextElementSibling;
+  if (!popupBody) {
+    console.log('No popup body found');
+    return;
+  }
+  var details = popupBody.querySelector('.popup-details');
+  if (!details) {
+    console.log('No details found');
+    return;
+  }
+
   if (details.classList.contains('open')) {
     details.classList.remove('open');
     btn.textContent = 'Show more details';
@@ -989,16 +1092,30 @@ function buildLegend() {
   legendEl.innerHTML = '';
 
   var usedCategories = {};
+  var unmatchedCategories = {};
   for (var i = 0; i < SERVICES.length; i++) {
     var s = SERVICES[i];
     if (s.categories) {
       var cats = s.categories.split(/[;,]/);
       for (var j = 0; j < cats.length; j++) {
         var cat = cats[j].trim();
-        if (cat && CATEGORIES[cat]) {
-          usedCategories[cat] = true;
+        if (cat) {
+          if (CATEGORIES[cat]) {
+            usedCategories[cat] = true;
+          } else {
+            unmatchedCategories[cat] = (unmatchedCategories[cat] || 0) + 1;
+          }
         }
       }
+    }
+  }
+
+  // Log unmatched categories for debugging
+  var unmatchedKeys = Object.keys(unmatchedCategories);
+  if (unmatchedKeys.length > 0) {
+    console.log('Unmatched categories in CSV (not in CATEGORIES config):');
+    for (var k = 0; k < unmatchedKeys.length; k++) {
+      console.log('  "' + unmatchedKeys[k] + '" (' + unmatchedCategories[unmatchedKeys[k]] + ' services)');
     }
   }
 
@@ -1252,6 +1369,34 @@ document.getElementById('online-filter').addEventListener('click', function() {
   renderList(document.getElementById('search-input').value);
 });
 
+// Select All categories
+document.getElementById('select-all-cats').addEventListener('click', function() {
+  var legendItems = document.querySelectorAll('.legend-item');
+  for (var i = 0; i < legendItems.length; i++) {
+    legendItems[i].classList.add('active');
+    var catName = legendItems[i].dataset.cat;
+    var shortName = legendItems[i].dataset.short;
+    // Add all related categories with same short name
+    var entries = Object.entries(CATEGORIES);
+    for (var j = 0; j < entries.length; j++) {
+      if (entries[j][1].short === shortName) {
+        activeCategories.add(entries[j][0]);
+      }
+    }
+  }
+  renderList(document.getElementById('search-input').value);
+});
+
+// Clear All categories
+document.getElementById('clear-all-cats').addEventListener('click', function() {
+  var legendItems = document.querySelectorAll('.legend-item');
+  for (var i = 0; i < legendItems.length; i++) {
+    legendItems[i].classList.remove('active');
+  }
+  activeCategories.clear();
+  renderList(document.getElementById('search-input').value);
+});
+
 document.getElementById('mapview-filter').addEventListener('click', function() {
   filterByMapView = !filterByMapView;
   this.classList.toggle('active', filterByMapView);
@@ -1284,6 +1429,22 @@ mobileToggleBtn.addEventListener('click', function(e) {
 });
 
 window.togglePopupDetails = togglePopupDetails;
+
+// Event delegation for popup details toggle (better mobile support)
+document.addEventListener('click', function(e) {
+  if (e.target.classList.contains('popup-details-toggle')) {
+    e.preventDefault();
+    togglePopupDetails(e.target);
+  }
+});
+
+// Touch event support for popup toggle
+document.addEventListener('touchend', function(e) {
+  if (e.target.classList.contains('popup-details-toggle')) {
+    e.preventDefault();
+    togglePopupDetails(e.target);
+  }
+});
 
 // ═══════════════════════════════════════════════════════════════════════════
 // INITIALIZE
