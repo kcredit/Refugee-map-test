@@ -626,6 +626,33 @@
         font-size: 12.5px;
       }
     }
+
+    /* Locate Me button */
+    .locate-me-btn {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+      padding: 6px 11px;
+      background: white;
+      border: 2px solid rgba(0,0,0,0.2);
+      border-radius: 4px;
+      cursor: pointer;
+      font-family: 'DM Sans', sans-serif;
+      font-size: 12px;
+      font-weight: 500;
+      color: var(--text-primary);
+      box-shadow: 0 1px 5px rgba(0,0,0,0.18);
+      margin-bottom: 5px;
+      white-space: nowrap;
+    }
+    .locate-me-btn:hover { background: #f4f4f4; }
+
+    /* Popup tags / services list */
+    .popup-tags {
+      font-size: 11px;
+      color: var(--text-secondary);
+      line-height: 1.6;
+    }
   </style>
 </head>
 
@@ -704,98 +731,54 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script>
 // ═══════════════════════════════════════════════════════════════════════════
-// CONFIGURATION - Update this URL to point to your CSV file on GitHub
-// ═══════════════════════════════════════════════════════════════════════════
-//
-// HOW TO SET UP:
-// 1. Create a GitHub repository (can be public or use GitHub Pages)
-// 2. Upload your CSV file to the repository
-// 3. Get the "raw" URL:
-//    - Go to your CSV file on GitHub
-//    - Click the "Raw" button
-//    - Copy the URL (it will look like the example below)
-// 4. Replace the URL below with your raw GitHub URL
-//
-// EXAMPLE URL FORMAT:
-// https://raw.githubusercontent.com/USERNAME/REPOSITORY/BRANCH/FILENAME.csv
-//
-// IMPORTANT: The CSV must have these columns:
-// - Name of the organisation
-// - DESCRIPTION
-// - ADDRESS
-// - ONLINE ONLY SERVICE (Yes/No)
-// - WEBSITE
-// - EMAIL
-// - TELEPHONE
-// - CATEGORIES
-// - latitude
-// - longitude
-//
+// CONFIGURATION
 // ═══════════════════════════════════════════════════════════════════════════
 
 var CSV_URL = 'https://raw.githubusercontent.com/kcredit/Refugee-map-test/refs/heads/main/Irish%20Refugee%20Council_CSV_12Jun26.csv';
 
-// ═══════════════════════════════════════════════════════════════════════════
-// END CONFIGURATION - No need to edit below this line
-// ═══════════════════════════════════════════════════════════════════════════
-
-// Category configuration with colors
-// NOTE: Multiple entries can map to the same "short" name for display purposes
+// Color config — keyed by SUPPORT value (primary) and CATEGORIES variants (fallback).
+// Marker colour and legend are driven by the SUPPORT column; CATEGORIES is used for search/tags.
 var CATEGORIES = {
-  // Information & Advice variants
-  "Information & Advice": { color: "#2563eb", short: "Info & Advice" },
-  "Information": { color: "#2563eb", short: "Info & Advice" },
-
-  // Education
-  "Education": { color: "#d97706", short: "Education" },
-
-  // Language Support
-  "Language Support": { color: "#0891b2", short: "Language" },
-
-  // Wellbeing & Mental Health variants
-  "Wellbeing & Mental Health": { color: "#7c3aed", short: "Mental Health" },
-  "Wellbeing": { color: "#7c3aed", short: "Mental Health" },
-
-  // Public Awareness & Activism variants (including typo in CSV)
-  "Public Awareness & Activism": { color: "#ec4899", short: "Activism" },
+  "Information & Advice":       { color: "#2563eb", short: "Info & Advice" },
+  "Information":                { color: "#2563eb", short: "Info & Advice" },
+  "Education":                  { color: "#d97706", short: "Education" },
+  "Educational Guidance":       { color: "#d97706", short: "Education" },
+  "Adult Community Education, Early Years Education, Counselling & Family Support": { color: "#d97706", short: "Education" },
+  "Language Support":           { color: "#0891b2", short: "Language" },
+  "Wellbeing & Mental Health":  { color: "#7c3aed", short: "Mental Health" },
+  "Wellbeing":                  { color: "#7c3aed", short: "Mental Health" },
+  "Chronic Illness and Disability  Support": { color: "#7c3aed", short: "Mental Health" },
+  "Public Awareness & Activism":{ color: "#ec4899", short: "Activism" },
   "Public Awareness & Activsm": { color: "#ec4899", short: "Activism" },
-
-  // Legal Advice
-  "Legal Advice": { color: "#1e40af", short: "Legal" },
-
-  // Housing variants
-  "Housing support": { color: "#0d9488", short: "Housing" },
-  "Housing Support": { color: "#0d9488", short: "Housing" },
-  "Housing": { color: "#0d9488", short: "Housing" },
-
-  // Community & Family variants
-  "Community & Family": { color: "#9333ea", short: "Community" },
-  "Community": { color: "#9333ea", short: "Community" },
-
-  // Youth Services
-  "Youth Services": { color: "#f59e0b", short: "Youth" },
-
-  // Culture & the Arts
-  "Culture & the Arts": { color: "#db2777", short: "Culture" },
-
-  // Employment & Training variants
-  "Employment & Training": { color: "#16a34a", short: "Employment" },
-  "Employment support": { color: "#16a34a", short: "Employment" },
-  "Employment": { color: "#16a34a", short: "Employment" },
-
-  // Health Services
-  "Health Services": { color: "#dc2626", short: "Health" },
-
-  // Emergency & Homelessness Support
+  "Legal Advice":               { color: "#1e40af", short: "Legal" },
+  "Court Support":              { color: "#1e40af", short: "Legal" },
+  "Housing support":            { color: "#0d9488", short: "Housing" },
+  "Housing Support":            { color: "#0d9488", short: "Housing" },
+  "Housing":                    { color: "#0d9488", short: "Housing" },
+  "Community & Family":         { color: "#9333ea", short: "Community" },
+  "Community":                  { color: "#9333ea", short: "Community" },
+  "Family Support":             { color: "#9333ea", short: "Community" },
+  "Biblical support and activities for children": { color: "#9333ea", short: "Community" },
+  "Youth Services":             { color: "#f59e0b", short: "Youth" },
+  "Childcare Information":      { color: "#f59e0b", short: "Youth" },
+  "Culture & the Arts":         { color: "#db2777", short: "Culture" },
+  "Employment & Training":      { color: "#16a34a", short: "Employment" },
+  "Employment support":         { color: "#16a34a", short: "Employment" },
+  "Employment":                 { color: "#16a34a", short: "Employment" },
+  "Health Services":            { color: "#dc2626", short: "Health" },
+  "Sexual Health & HIV":        { color: "#0e7490", short: "Sexual Health" },
   "Emergency & Homelessness Support (e.g. food, shelter, day services)": { color: "#b91c1c", short: "Emergency" },
   "Emergency & Homelessness Support": { color: "#b91c1c", short: "Emergency" },
-
-  // Environment
-  "Environment": { color: "#059669", short: "Environment" },
-
-  // Volunteering variants
+  "Meals":                      { color: "#b91c1c", short: "Emergency" },
+  "Environment":                { color: "#059669", short: "Environment" },
   "Volunteering Opportunities": { color: "#6366f1", short: "Volunteering" },
-  "Volunteering": { color: "#6366f1", short: "Volunteering" }
+  "Volunteering":               { color: "#6366f1", short: "Volunteering" },
+  "Sport":                      { color: "#15803d", short: "Sport" },
+  "Domestic Abuse Services":    { color: "#be123c", short: "Domestic Abuse" },
+  "Domestic Abuse services":    { color: "#be123c", short: "Domestic Abuse" },
+  "Multiple Services":          { color: "#475569", short: "Multiple Services" },
+  "Multiple services":          { color: "#475569", short: "Multiple Services" },
+  "Other":                      { color: "#64748b", short: "Other" }
 };
 
 var DEFAULT_COLOR = "#64748b";
@@ -804,7 +787,7 @@ var DEFAULT_COLOR = "#64748b";
 var SERVICES = [];
 var markers = {};
 var markerLayer;
-var activeCategories = new Set();
+var activeCategories = new Set(); // active SUPPORT values for legend filter
 var activeItem = null;
 var map;
 var onlyOnline = false;
@@ -819,17 +802,11 @@ function parseCSVLine(line) {
   var result = [];
   var current = '';
   var inQuotes = false;
-
   for (var i = 0; i < line.length; i++) {
     var char = line[i];
-
     if (char === '"') {
-      if (inQuotes && line[i + 1] === '"') {
-        current += '"';
-        i++;
-      } else {
-        inQuotes = !inQuotes;
-      }
+      if (inQuotes && line[i + 1] === '"') { current += '"'; i++; }
+      else { inQuotes = !inQuotes; }
     } else if (char === ',' && !inQuotes) {
       result.push(current.trim());
       current = '';
@@ -838,79 +815,65 @@ function parseCSVLine(line) {
     }
   }
   result.push(current.trim());
-
   return result;
 }
 
 function parseCSV(text) {
-  // Remove BOM if present
-  if (text.charCodeAt(0) === 0xFEFF) {
-    text = text.slice(1);
-  }
+  if (text.charCodeAt(0) === 0xFEFF) text = text.slice(1);
 
   var lines = text.split('\n');
   var headers = parseCSVLine(lines[0]);
   var data = [];
 
-  // Find column indices (case-insensitive search)
   function findCol(name) {
     for (var i = 0; i < headers.length; i++) {
-      if (headers[i].toLowerCase().trim() === name.toLowerCase()) {
-        return i;
-      }
+      if (headers[i].toLowerCase().trim() === name.toLowerCase()) return i;
     }
     return -1;
   }
 
-  var colName = findCol('Name of the organisation');
-  var colDesc = findCol('DESCRIPTION');
-  var colAddr = findCol('ADDRESS');
-  var colOnline = findCol('ONLINE ONLY SERVICE');
-  var colWebsite = findCol('WEBSITE');
-  var colEmail = findCol('EMAIL');
-  var colPhone = findCol('TELEPHONE');
-  var colCat = findCol('CATEGORIES');
-  var colLat = findCol('latitude');
-  var colLng = findCol('longitude');
-
-  console.log('CSV columns found:', {
-    name: colName,
-    desc: colDesc,
-    addr: colAddr,
-    online: colOnline,
-    website: colWebsite,
-    email: colEmail,
-    phone: colPhone,
-    categories: colCat,
-    lat: colLat,
-    lng: colLng
-  });
+  var colName     = findCol('Name of the organisation');
+  var colDesc     = findCol('DESCRIPTION');
+  var colKeywords = findCol('KEYWORDS');
+  var colAddr     = findCol('ADDRESS');
+  var colEircode  = findCol('EIRCODE');
+  var colOnline   = findCol('ONLINE ONLY SERVICE');
+  var colWebsite  = findCol('WEBSITE');
+  var colEmail    = findCol('EMAIL');
+  var colPhone    = findCol('TELEPHONE');
+  var colCat      = findCol('CATEGORIES');
+  var colSupport  = findCol('SUPPORT');
+  var colLat      = findCol('latitude');
+  var colLng      = findCol('longitude');
+  var colDropIn   = findCol('DropIn_Info');
 
   var currentLine = '';
   for (var i = 1; i < lines.length; i++) {
     currentLine += (currentLine ? '\n' : '') + lines[i];
-
-    // Check if line is complete (even number of quotes)
     var quoteCount = (currentLine.match(/"/g) || []).length;
     if (quoteCount % 2 === 0) {
       var values = parseCSVLine(currentLine);
-
       if (values.length >= Math.max(colLat, colLng) + 1) {
         var lat = parseFloat(values[colLat]);
         var lng = parseFloat(values[colLng]);
-
         if (!isNaN(lat) && !isNaN(lng) && lat !== 0 && lng !== 0) {
           var name = colName >= 0 ? values[colName] : '';
           if (name) {
+            // Keywords may have embedded newlines — flatten to comma-separated
+            var keywords = colKeywords >= 0 ? (values[colKeywords] || '').replace(/[\r\n]+/g, ', ').replace(/,\s*,/g, ',').replace(/^,|,$/g, '').trim() : '';
             data.push({
-              name: name,
-              description: colDesc >= 0 ? (values[colDesc] || '').substring(0, 500) : '',
-              address: colAddr >= 0 ? values[colAddr] || '' : '',
-              online: colOnline >= 0 ? values[colOnline] || '' : '',
-              website: colWebsite >= 0 ? values[colWebsite] || '' : '',
-              email: colEmail >= 0 ? values[colEmail] || '' : '',
-              phone: colPhone >= 0 ? values[colPhone] || '' : '',
-              categories: colCat >= 0 ? values[colCat] || '' : '',
+              name:        name,
+              description: colDesc    >= 0 ? (values[colDesc]    || '').substring(0, 500) : '',
+              keywords:    keywords,
+              address:     colAddr    >= 0 ? values[colAddr]    || '' : '',
+              eircode:     colEircode >= 0 ? values[colEircode] || '' : '',
+              online:      colOnline  >= 0 ? values[colOnline]  || '' : '',
+              website:     colWebsite >= 0 ? values[colWebsite] || '' : '',
+              email:       colEmail   >= 0 ? values[colEmail]   || '' : '',
+              phone:       colPhone   >= 0 ? values[colPhone]   || '' : '',
+              categories:  colCat     >= 0 ? values[colCat]     || '' : '',
+              support:     colSupport >= 0 ? values[colSupport] || '' : '',
+              dropIn:      colDropIn  >= 0 ? values[colDropIn]  || '' : '',
               lat: lat,
               lng: lng
             });
@@ -920,7 +883,6 @@ function parseCSV(text) {
       currentLine = '';
     }
   }
-
   return data;
 }
 
@@ -928,21 +890,22 @@ function parseCSV(text) {
 // HELPER FUNCTIONS
 // ═══════════════════════════════════════════════════════════════════════════
 
-function getCategoryColor(categories) {
+// Colour driven by SUPPORT column first, falls back to CATEGORIES text
+function getCategoryColor(support, categories) {
+  if (support && CATEGORIES[support.trim()]) return CATEGORIES[support.trim()].color;
   if (!categories) return DEFAULT_COLOR;
-  var catList = categories.split(/[;,]/).map(function(c) { return c.trim(); }).filter(function(c) { return c; });
+  var catList = categories.split(/[;,]/).map(function(c) { return c.trim(); }).filter(Boolean);
   for (var i = 0; i < catList.length; i++) {
     if (CATEGORIES[catList[i]]) return CATEGORIES[catList[i]].color;
   }
   return DEFAULT_COLOR;
 }
 
-function getPrimaryCategory(categories) {
+// Primary display label: prefer SUPPORT, fall back to first CATEGORIES value
+function getPrimaryCategory(support, categories) {
+  if (support && support.trim()) return support.trim();
   if (!categories) return "Other";
-  var catList = categories.split(/[;,]/).map(function(c) { return c.trim(); }).filter(function(c) { return c; });
-  for (var i = 0; i < catList.length; i++) {
-    if (CATEGORIES[catList[i]]) return catList[i];
-  }
+  var catList = categories.split(/[;,]/).map(function(c) { return c.trim(); }).filter(Boolean);
   return catList[0] || "Other";
 }
 
@@ -953,30 +916,56 @@ function escapeHtml(text) {
   return div.innerHTML;
 }
 
+function isBlank(val) {
+  return !val || val.trim() === '' || val.trim() === 'N/A' || val.trim() === 'None';
+}
+
 // ═══════════════════════════════════════════════════════════════════════════
 // MAP FUNCTIONS
 // ═══════════════════════════════════════════════════════════════════════════
 
 function initMap() {
-  map = L.map('map', {
-    center: [53.5, -7.5],
-    zoom: 7,
-    zoomControl: false
-  });
+  map = L.map('map', { center: [53.5, -7.5], zoom: 7, zoomControl: false });
 
   L.control.zoom({ position: 'bottomright' }).addTo(map);
 
-  L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a>',
+  L.tileLayer('https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png', {
+    attribution: '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors &copy; <a href="https://carto.com/attributions">CARTO</a>',
+    subdomains: 'abcd',
     maxZoom: 19
   }).addTo(map);
 
   markerLayer = L.layerGroup().addTo(map);
 
   map.on('moveend', function() {
-    if (filterByMapView) {
-      renderList(document.getElementById('search-input').value);
+    if (filterByMapView) renderList(document.getElementById('search-input').value);
+  });
+
+  // ── Locate Me control ──────────────────────────────────────────────────
+  var LocateControl = L.Control.extend({
+    options: { position: 'bottomright' },
+    onAdd: function() {
+      var btn = L.DomUtil.create('button', 'locate-me-btn');
+      btn.title = 'Find my location';
+      btn.innerHTML = '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><circle cx="12" cy="12" r="3"/><line x1="12" y1="2" x2="12" y2="6"/><line x1="12" y1="18" x2="12" y2="22"/><line x1="2" y1="12" x2="6" y2="12"/><line x1="18" y1="12" x2="22" y2="12"/></svg> Locate Me';
+      L.DomEvent.on(btn, 'click', function() {
+        map.locate({ setView: true, maxZoom: 13 });
+      });
+      L.DomEvent.disableClickPropagation(btn);
+      return btn;
     }
+  });
+  new LocateControl().addTo(map);
+
+  map.on('locationfound', function(e) {
+    L.circleMarker(e.latlng, {
+      radius: 10, color: '#1d5c4a', weight: 3,
+      fillColor: '#ffffff', fillOpacity: 1
+    }).addTo(map).bindPopup('You are here').openPopup();
+  });
+
+  map.on('locationerror', function() {
+    alert('Location access was denied or unavailable.');
   });
 }
 
@@ -991,33 +980,30 @@ function makeIcon(color) {
 }
 
 function makePopup(s) {
-  var col = getCategoryColor(s.categories);
-  var primaryCat = getPrimaryCategory(s.categories);
+  var col = getCategoryColor(s.support, s.categories);
+  var primaryCat = getPrimaryCategory(s.support, s.categories);
   var isOnlineOnly = s.online && s.online.toLowerCase() === 'yes';
 
   var onlineHtml = isOnlineOnly
-    ? '<span class="popup-online-yes">Yes - online service</span>'
+    ? '<span class="popup-online-yes">Yes — online service</span>'
     : '<span class="popup-online-no">In-person service</span>';
 
-  var name = escapeHtml(s.name) || 'Unknown';
+  var name        = escapeHtml(s.name) || 'Unknown';
   var description = escapeHtml(s.description) || '';
-  var address = escapeHtml(s.address) || '';
-  var phone = s.phone || '';
-  var website = s.website || '';
-  var email = s.email || '';
+  var address     = escapeHtml(s.address) || '';
+  var phone       = s.phone   || '';
+  var website     = s.website || '';
+  var email       = s.email   || '';
 
   var cleanPhone = phone.replace(/[^0-9+]/g, '');
-  var cleanWebsite = website;
-  if (website && website.indexOf('http') !== 0) {
-    cleanWebsite = 'https://' + website;
-  }
+  var cleanWebsite = (!isBlank(website) && website.indexOf('http') !== 0) ? 'https://' + website : website;
 
   var contactLinks = '<div class="popup-contact-links">';
-  if (cleanWebsite && website !== 'N/A' && website !== 'None') {
+  if (!isBlank(website)) {
     contactLinks += '<a href="' + cleanWebsite + '" target="_blank" rel="noopener" class="popup-contact-link">Visit Website</a>';
   }
-  if (cleanPhone && phone !== 'N/A' && phone !== 'None') {
-    contactLinks += '<a href="tel:' + cleanPhone + '" class="popup-contact-link ' + (cleanWebsite ? 'secondary' : '') + '">Call ' + escapeHtml(phone) + '</a>';
+  if (!isBlank(phone)) {
+    contactLinks += '<a href="tel:' + cleanPhone + '" class="popup-contact-link ' + (!isBlank(website) ? 'secondary' : '') + '">Call ' + escapeHtml(phone) + '</a>';
   }
   contactLinks += '</div>';
 
@@ -1032,18 +1018,30 @@ function makePopup(s) {
   if (description) {
     html += '<div class="popup-row"><span class="popup-label">About</span><span class="popup-val">' + description.substring(0, 250) + (description.length > 250 ? '...' : '') + '</span></div>';
   }
-  if (address && address !== 'None') {
+  if (!isBlank(s.dropIn)) {
+    html += '<div class="popup-row"><span class="popup-label">Drop-in</span><span class="popup-val">' + escapeHtml(s.dropIn) + '</span></div>';
+  }
+  if (!isBlank(address)) {
     html += '<div class="popup-row"><span class="popup-label">Address</span><span class="popup-val">' + address + '</span></div>';
   }
-  html += '<div class="popup-row"><span class="popup-label">Online only</span><span class="popup-val">' + onlineHtml + '</span></div>';
-  if (phone && phone !== 'N/A' && phone !== 'None') {
+  if (!isBlank(s.eircode)) {
+    html += '<div class="popup-row"><span class="popup-label">Eircode</span><span class="popup-val">' + escapeHtml(s.eircode) + '</span></div>';
+  }
+  html += '<div class="popup-row"><span class="popup-label">Service</span><span class="popup-val">' + onlineHtml + '</span></div>';
+  if (!isBlank(phone)) {
     html += '<div class="popup-row"><span class="popup-label">Phone</span><span class="popup-val"><a href="tel:' + cleanPhone + '">' + escapeHtml(phone) + '</a></span></div>';
   }
-  if (website && website !== 'N/A' && website !== 'None') {
+  if (!isBlank(website)) {
     html += '<div class="popup-row"><span class="popup-label">Website</span><span class="popup-val"><a href="' + cleanWebsite + '" target="_blank" rel="noopener">Visit website</a></span></div>';
   }
-  if (email && email !== 'N/A' && email !== 'None') {
+  if (!isBlank(email)) {
     html += '<div class="popup-row"><span class="popup-label">Email</span><span class="popup-val"><a href="mailto:' + email + '">' + escapeHtml(email) + '</a></span></div>';
+  }
+  if (!isBlank(s.keywords)) {
+    html += '<div class="popup-row"><span class="popup-label">Tags</span><span class="popup-val popup-tags">' + escapeHtml(s.keywords) + '</span></div>';
+  }
+  if (!isBlank(s.categories)) {
+    html += '<div class="popup-row"><span class="popup-label">Services</span><span class="popup-val popup-tags">' + escapeHtml(s.categories) + '</span></div>';
   }
 
   html += '</div></div>';
@@ -1051,18 +1049,10 @@ function makePopup(s) {
 }
 
 function togglePopupDetails(btn) {
-  // Find the details section - it's inside the next sibling (popup-body)
   var popupBody = btn.nextElementSibling;
-  if (!popupBody) {
-    console.log('No popup body found');
-    return;
-  }
+  if (!popupBody) return;
   var details = popupBody.querySelector('.popup-details');
-  if (!details) {
-    console.log('No details found');
-    return;
-  }
-
+  if (!details) return;
   if (details.classList.contains('open')) {
     details.classList.remove('open');
     btn.textContent = 'Show more details';
@@ -1075,7 +1065,7 @@ function togglePopupDetails(btn) {
 function createMarkers() {
   for (var i = 0; i < SERVICES.length; i++) {
     var s = SERVICES[i];
-    var color = getCategoryColor(s.categories);
+    var color = getCategoryColor(s.support, s.categories);
     var marker = L.marker([s.lat, s.lng], { icon: makeIcon(color) });
     marker.bindPopup(makePopup(s), { maxWidth: isMobile ? 280 : 300 });
     marker.addTo(markerLayer);
@@ -1084,94 +1074,92 @@ function createMarkers() {
 }
 
 // ═══════════════════════════════════════════════════════════════════════════
-// LEGEND
+// JITTER — spread markers that share the same geocoded location
+// ═══════════════════════════════════════════════════════════════════════════
+
+function applyJitter(services) {
+  var groups = {};
+  for (var i = 0; i < services.length; i++) {
+    // Group by coordinates rounded to 4 d.p. (~11 m precision)
+    var key = services[i].lat.toFixed(4) + ',' + services[i].lng.toFixed(4);
+    if (!groups[key]) groups[key] = [];
+    groups[key].push(i);
+  }
+  for (var key in groups) {
+    var group = groups[key];
+    if (group.length < 2) continue;
+    // Arrange duplicates evenly around a small circle (~40 m radius)
+    var r = 0.00035;
+    for (var j = 0; j < group.length; j++) {
+      var angle = (2 * Math.PI * j) / group.length;
+      services[group[j]].lat = services[group[j]].lat + r * Math.sin(angle);
+      services[group[j]].lng = services[group[j]].lng + r * Math.cos(angle);
+    }
+  }
+}
+
+// ═══════════════════════════════════════════════════════════════════════════
+// LEGEND — built from unique SUPPORT values in the data
 // ═══════════════════════════════════════════════════════════════════════════
 
 function buildLegend() {
   var legendEl = document.getElementById('legend');
   legendEl.innerHTML = '';
+  activeCategories.clear();
 
-  var usedCategories = {};
-  var unmatchedCategories = {};
+  // Collect unique SUPPORT values present in the data
+  var usedSupports = {};
   for (var i = 0; i < SERVICES.length; i++) {
-    var s = SERVICES[i];
-    if (s.categories) {
-      var cats = s.categories.split(/[;,]/);
-      for (var j = 0; j < cats.length; j++) {
-        var cat = cats[j].trim();
-        if (cat) {
-          if (CATEGORIES[cat]) {
-            usedCategories[cat] = true;
-          } else {
-            unmatchedCategories[cat] = (unmatchedCategories[cat] || 0) + 1;
-          }
-        }
-      }
-    }
+    var sup = (SERVICES[i].support || '').trim();
+    if (sup) usedSupports[sup] = true;
   }
 
-  // Log unmatched categories for debugging
-  var unmatchedKeys = Object.keys(unmatchedCategories);
-  if (unmatchedKeys.length > 0) {
-    console.log('Unmatched categories in CSV (not in CATEGORIES config):');
-    for (var k = 0; k < unmatchedKeys.length; k++) {
-      console.log('  "' + unmatchedKeys[k] + '" (' + unmatchedCategories[unmatchedKeys[k]] + ' services)');
-    }
-  }
-
+  // Iterate CATEGORIES config in order to build deduplicated legend items
   var displayed = {};
   var entries = Object.entries(CATEGORIES);
   for (var k = 0; k < entries.length; k++) {
     var cat = entries[k][0];
     var cfg = entries[k][1];
-
-    if (!usedCategories[cat]) continue;
+    if (!usedSupports[cat]) continue;
     if (displayed[cfg.short]) continue;
     displayed[cfg.short] = true;
+
+    // All SUPPORT values that share this display label
+    var relatedSupports = [];
+    for (var m = 0; m < entries.length; m++) {
+      if (entries[m][1].short === cfg.short && usedSupports[entries[m][0]]) {
+        relatedSupports.push(entries[m][0]);
+      }
+    }
 
     var item = document.createElement('div');
     item.className = 'legend-item active';
     item.style.color = cfg.color;
     item.innerHTML = '<div class="legend-dot" style="background:' + cfg.color + '"></div>' + cfg.short;
-    item.dataset.cat = cat;
-    item.dataset.short = cfg.short;
+    item.dataset.short   = cfg.short;
+    item.dataset.related = JSON.stringify(relatedSupports);
 
-    item.addEventListener('click', function(e) {
-      var clickedCat = this.dataset.cat;
-      var clickedShort = this.dataset.short;
-
-      var relatedCats = [];
-      var allEntries = Object.entries(CATEGORIES);
-      for (var m = 0; m < allEntries.length; m++) {
-        if (allEntries[m][1].short === clickedShort) {
-          relatedCats.push(allEntries[m][0]);
-        }
+    item.addEventListener('click', function() {
+      var related  = JSON.parse(this.dataset.related);
+      var isActive = this.classList.contains('active');
+      for (var n = 0; n < related.length; n++) {
+        if (isActive) activeCategories.delete(related[n]);
+        else          activeCategories.add(related[n]);
       }
-
-      var isActive = activeCategories.has(clickedCat);
-      for (var n = 0; n < relatedCats.length; n++) {
-        if (isActive) {
-          activeCategories.delete(relatedCats[n]);
-        } else {
-          activeCategories.add(relatedCats[n]);
-        }
-      }
-
-      if (isActive) {
-        this.classList.remove('active');
-      } else {
-        this.classList.add('active');
-      }
+      this.classList.toggle('active', !isActive);
       renderList(document.getElementById('search-input').value);
     });
 
     legendEl.appendChild(item);
 
-    for (var m = 0; m < entries.length; m++) {
-      if (entries[m][1].short === cfg.short) {
-        activeCategories.add(entries[m][0]);
-      }
+    for (var r = 0; r < relatedSupports.length; r++) {
+      activeCategories.add(relatedSupports[r]);
     }
+  }
+
+  // Any SUPPORT value not in CATEGORIES config → always visible (no legend entry)
+  for (var sup in usedSupports) {
+    if (!CATEGORIES[sup]) activeCategories.add(sup);
   }
 }
 
@@ -1181,74 +1169,67 @@ function buildLegend() {
 
 function isInMapView(lat, lng) {
   if (!filterByMapView) return true;
-  var bounds = map.getBounds();
-  return bounds.contains([lat, lng]);
+  return map.getBounds().contains([lat, lng]);
 }
 
 function renderList(query) {
   query = query || '';
   var q = query.toLowerCase().trim();
-  var orgList = document.getElementById('org-list');
-  var noResults = document.getElementById('no-results');
-  var countEl = document.getElementById('result-count');
+  var orgList      = document.getElementById('org-list');
+  var noResults    = document.getElementById('no-results');
+  var countEl      = document.getElementById('result-count');
   var mapFilterNote = document.getElementById('map-filter-note');
-  var loadingMsg = document.getElementById('loading-message');
+  var loadingMsg   = document.getElementById('loading-message');
 
   loadingMsg.style.display = 'none';
-
-  if (filterByMapView) {
-    mapFilterNote.classList.add('visible');
-  } else {
-    mapFilterNote.classList.remove('visible');
-  }
+  if (filterByMapView) mapFilterNote.classList.add('visible');
+  else                 mapFilterNote.classList.remove('visible');
 
   var oldItems = orgList.querySelectorAll('.org-item');
-  for (var i = 0; i < oldItems.length; i++) {
-    oldItems[i].remove();
-  }
+  for (var i = 0; i < oldItems.length; i++) oldItems[i].remove();
 
-  var filtered = [];
+  var filtered   = [];
   var visibleOnMap = 0;
 
   for (var i = 0; i < SERVICES.length; i++) {
     var s = SERVICES[i];
+    var support = (s.support || '').trim();
 
-    var cats = s.categories || '';
-    var catList = cats.split(/[;,]/).map(function(c) { return c.trim(); }).filter(function(c) { return c; });
-    var matchCat = catList.length === 0;
-    for (var j = 0; j < catList.length; j++) {
-      if (activeCategories.has(catList[j])) {
-        matchCat = true;
-        break;
-      }
+    // Category filter: when nothing is selected hide everything;
+    // blank/unrecognised SUPPORT passes through only when something is selected
+    var matchCat;
+    if (activeCategories.size === 0) {
+      matchCat = false;
+    } else if (!support || !CATEGORIES[support]) {
+      matchCat = true;
+    } else {
+      matchCat = activeCategories.has(support);
     }
 
     var isOnline = s.online && s.online.toLowerCase() === 'yes';
     var matchOnline = !onlyOnline || isOnline;
 
-    var name = (s.name || '').toLowerCase();
-    var address = (s.address || '').toLowerCase();
-    var description = (s.description || '').toLowerCase();
     var matchSearch = !q ||
-      name.indexOf(q) !== -1 ||
-      address.indexOf(q) !== -1 ||
-      cats.toLowerCase().indexOf(q) !== -1 ||
-      description.indexOf(q) !== -1;
+      (s.name        || '').toLowerCase().indexOf(q) !== -1 ||
+      (s.address     || '').toLowerCase().indexOf(q) !== -1 ||
+      (s.categories  || '').toLowerCase().indexOf(q) !== -1 ||
+      (s.description || '').toLowerCase().indexOf(q) !== -1 ||
+      (s.keywords    || '').toLowerCase().indexOf(q) !== -1 ||
+      support.toLowerCase().indexOf(q) !== -1;
 
     var passesBaseFilters = matchCat && matchSearch && matchOnline;
 
-    if (passesBaseFilters) {
-      if (!markerLayer.hasLayer(markers[i])) {
-        markerLayer.addLayer(markers[i]);
-      }
+    // Online-only services never appear as map pins — button only filters the list
+    var showOnMap = passesBaseFilters && !isOnline;
+
+    if (showOnMap) {
+      if (!markerLayer.hasLayer(markers[i])) markerLayer.addLayer(markers[i]);
       visibleOnMap++;
     } else {
       markerLayer.removeLayer(markers[i]);
     }
 
-    var matchMapView = isInMapView(s.lat, s.lng);
-
-    if (passesBaseFilters && matchMapView) {
+    if (passesBaseFilters && isInMapView(s.lat, s.lng)) {
       filtered.push({ service: s, index: i });
     }
   }
@@ -1264,29 +1245,29 @@ function renderList(query) {
   }
 
   for (var i = 0; i < filtered.length; i++) {
-    var s = filtered[i].service;
+    var s   = filtered[i].service;
     var idx = filtered[i].index;
-    var col = getCategoryColor(s.categories);
-    var primaryCat = getPrimaryCategory(s.categories);
+    var col = getCategoryColor(s.support, s.categories);
+    var primaryCat  = getPrimaryCategory(s.support, s.categories);
     var isOnlineOnly = s.online && s.online.toLowerCase() === 'yes';
-    var name = s.name || 'Unknown';
     var address = s.address || '';
 
     var item = document.createElement('div');
-    item.className = 'org-item';
+    item.className   = 'org-item';
     item.dataset.idx = idx;
 
-    var shortCat = CATEGORIES[primaryCat] ? CATEGORIES[primaryCat].short : escapeHtml(primaryCat);
-    var shortAddr = address && address !== 'None' ? escapeHtml(address.substring(0, 35)) + (address.length > 35 ? '...' : '') : '';
+    var shortCat  = CATEGORIES[primaryCat] ? CATEGORIES[primaryCat].short : escapeHtml(primaryCat);
+    var shortAddr = (!isBlank(address)) ? escapeHtml(address.substring(0, 35)) + (address.length > 35 ? '...' : '') : '';
 
-    item.innerHTML = '<div class="org-item-header">' +
-      '<div class="org-dot" style="background:' + col + '"></div>' +
-      '<div class="org-name">' + escapeHtml(name) + '</div>' +
+    item.innerHTML =
+      '<div class="org-item-header">' +
+        '<div class="org-dot" style="background:' + col + '"></div>' +
+        '<div class="org-name">' + escapeHtml(s.name || 'Unknown') + '</div>' +
       '</div>' +
       '<div class="org-meta">' +
-      '<span class="org-category" style="background:' + col + '">' + shortCat + '</span>' +
-      (shortAddr ? '<span class="org-address">' + shortAddr + '</span>' : '') +
-      (isOnlineOnly ? '<span class="online-badge">Online only</span>' : '') +
+        '<span class="org-category" style="background:' + col + '">' + shortCat + '</span>' +
+        (shortAddr ? '<span class="org-address">' + shortAddr + '</span>' : '') +
+        (isOnlineOnly ? '<span class="online-badge">Online only</span>' : '') +
       '</div>';
 
     (function(service, index, element) {
@@ -1295,10 +1276,8 @@ function renderList(query) {
           document.getElementById('sidebar').classList.remove('open');
           document.getElementById('mobile-toggle').textContent = 'View List';
         }
-
         map.flyTo([service.lat, service.lng], 14, { duration: 0.8 });
         markers[index].openPopup();
-
         if (activeItem) activeItem.classList.remove('active');
         element.classList.add('active');
         activeItem = element;
@@ -1319,42 +1298,26 @@ function loadData() {
   loadingMsg.className = '';
   loadingMsg.style.display = 'block';
 
-  console.log('Fetching CSV from:', CSV_URL);
-
   fetch(CSV_URL)
     .then(function(response) {
-      if (!response.ok) {
-        throw new Error('HTTP ' + response.status + ': ' + response.statusText);
-      }
+      if (!response.ok) throw new Error('HTTP ' + response.status + ': ' + response.statusText);
       return response.text();
     })
     .then(function(text) {
-      console.log('CSV loaded, parsing...');
       SERVICES = parseCSV(text);
-      console.log('Parsed ' + SERVICES.length + ' services');
-
-      if (SERVICES.length === 0) {
-        throw new Error('No valid services found in CSV. Check that the CSV has the required columns.');
-      }
-
+      if (SERVICES.length === 0) throw new Error('No valid services found in CSV. Check the required columns are present.');
+      applyJitter(SERVICES);
       buildLegend();
       createMarkers();
       renderList('');
-
-      if (SERVICES.length > 0) {
-        var bounds = L.latLngBounds(SERVICES.map(function(s) { return [s.lat, s.lng]; }));
-        map.fitBounds(bounds, { padding: [30, 30] });
-      }
+      var bounds = L.latLngBounds(SERVICES.map(function(s) { return [s.lat, s.lng]; }));
+      map.fitBounds(bounds, { padding: [30, 30] });
     })
     .catch(function(error) {
       console.error('Error loading data:', error);
-      loadingMsg.innerHTML = '<div style="color:#dc2626;">' +
-        '<strong>Error loading data</strong><br><br>' +
+      loadingMsg.innerHTML = '<div style="color:#dc2626;"><strong>Error loading data</strong><br><br>' +
         error.message + '<br><br>' +
-        '<small style="color:#666;">Check that:<br>' +
-        '1. The CSV_URL is correct<br>' +
-        '2. The file is publicly accessible<br>' +
-        '3. The CSV has the required columns</small></div>';
+        '<small style="color:#666;">Check that the CSV_URL is correct and the file is publicly accessible.</small></div>';
       loadingMsg.className = 'error';
     });
 }
@@ -1369,30 +1332,19 @@ document.getElementById('online-filter').addEventListener('click', function() {
   renderList(document.getElementById('search-input').value);
 });
 
-// Select All categories
 document.getElementById('select-all-cats').addEventListener('click', function() {
-  var legendItems = document.querySelectorAll('.legend-item');
-  for (var i = 0; i < legendItems.length; i++) {
-    legendItems[i].classList.add('active');
-    var catName = legendItems[i].dataset.cat;
-    var shortName = legendItems[i].dataset.short;
-    // Add all related categories with same short name
-    var entries = Object.entries(CATEGORIES);
-    for (var j = 0; j < entries.length; j++) {
-      if (entries[j][1].short === shortName) {
-        activeCategories.add(entries[j][0]);
-      }
-    }
+  var items = document.querySelectorAll('.legend-item');
+  for (var i = 0; i < items.length; i++) {
+    items[i].classList.add('active');
+    var related = JSON.parse(items[i].dataset.related);
+    for (var j = 0; j < related.length; j++) activeCategories.add(related[j]);
   }
   renderList(document.getElementById('search-input').value);
 });
 
-// Clear All categories
 document.getElementById('clear-all-cats').addEventListener('click', function() {
-  var legendItems = document.querySelectorAll('.legend-item');
-  for (var i = 0; i < legendItems.length; i++) {
-    legendItems[i].classList.remove('active');
-  }
+  var items = document.querySelectorAll('.legend-item');
+  for (var i = 0; i < items.length; i++) items[i].classList.remove('active');
   activeCategories.clear();
   renderList(document.getElementById('search-input').value);
 });
@@ -1407,30 +1359,17 @@ document.getElementById('search-input').addEventListener('input', function(e) {
   renderList(e.target.value);
 });
 
-// Mobile toggle
-var mobileToggleBtn = document.getElementById('mobile-toggle');
-mobileToggleBtn.addEventListener('click', function(e) {
+document.getElementById('mobile-toggle').addEventListener('click', function() {
   var sidebar = document.getElementById('sidebar');
-  var btn = this;
-
-  console.log('Toggle clicked, sidebar currently open:', sidebar.classList.contains('open'));
-
-  if (sidebar.classList.contains('open')) {
-    sidebar.classList.remove('open');
-    sidebar.style.webkitTransform = 'translateY(-100%)';
-    sidebar.style.transform = 'translateY(-100%)';
-    btn.textContent = 'View List';
-  } else {
-    sidebar.classList.add('open');
-    sidebar.style.webkitTransform = 'translateY(0)';
-    sidebar.style.transform = 'translateY(0)';
-    btn.textContent = 'View Map';
-  }
+  var isOpen  = sidebar.classList.contains('open');
+  sidebar.classList.toggle('open', !isOpen);
+  sidebar.style.webkitTransform = isOpen ? 'translateY(-100%)' : 'translateY(0)';
+  sidebar.style.transform       = isOpen ? 'translateY(-100%)' : 'translateY(0)';
+  this.textContent = isOpen ? 'View List' : 'View Map';
 });
 
 window.togglePopupDetails = togglePopupDetails;
 
-// Event delegation for popup details toggle (better mobile support)
 document.addEventListener('click', function(e) {
   if (e.target.classList.contains('popup-details-toggle')) {
     e.preventDefault();
@@ -1438,7 +1377,6 @@ document.addEventListener('click', function(e) {
   }
 });
 
-// Touch event support for popup toggle
 document.addEventListener('touchend', function(e) {
   if (e.target.classList.contains('popup-details-toggle')) {
     e.preventDefault();
