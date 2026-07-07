@@ -1041,7 +1041,8 @@ function makePopup(s) {
   if (!isBlank(s.dropIn)) {
     html += '<div class="popup-row"><span class="popup-label">Drop-in</span><span class="popup-val">' + escapeHtml(s.dropIn) + '</span></div>';
   }
-  if (isOnlineOnly) {
+  var useCounty = isOnlineOnly || (s.diffSymbol && s.diffSymbol.trim().toLowerCase() === 'yes');
+  if (useCounty) {
     if (!isBlank(s.county)) {
       html += '<div class="popup-row"><span class="popup-label">County</span><span class="popup-val">' + escapeHtml(s.county) + '</span></div>';
     }
@@ -1285,9 +1286,8 @@ function renderList(query) {
     item.dataset.idx = idx;
 
     var shortCat  = CATEGORIES[primaryCat] ? CATEGORIES[primaryCat].short : escapeHtml(primaryCat);
-    var addrDisplay = isOnlineOnly
-      ? (s.county || '')
-      : address;
+    var useCounty = isOnlineOnly || (s.diffSymbol && s.diffSymbol.trim().toLowerCase() === 'yes');
+    var addrDisplay = useCounty ? (s.county || '') : address;
     var shortAddr = (!isBlank(addrDisplay)) ? escapeHtml(addrDisplay.substring(0, 35)) + (addrDisplay.length > 35 ? '...' : '') : '';
 
     item.innerHTML =
