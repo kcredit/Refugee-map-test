@@ -931,12 +931,15 @@ function initMap() {
   new LocateControl().addTo(map);
 
   map.on('locationfound', function(e) {
-    L.circleMarker(e.latlng, {
-      radius: 10, color: '#1d5c4a', weight: 3,
-      fillColor: '#ffffff', fillOpacity: 1
-    }).addTo(map).bindPopup(
+    var locIcon = L.divIcon({
+      className: '',
+      html: '<div style="font-size:28px;line-height:1;filter:drop-shadow(0 2px 4px rgba(0,0,0,0.3));">📍</div>',
+      iconSize: [28, 28],
+      iconAnchor: [14, 28],
+      popupAnchor: [0, -30]
+    });
+    L.marker(e.latlng, { icon: locIcon }).addTo(map).bindPopup(
       '<div style="text-align:center;padding:6px 10px 4px;">' +
-        '<div style="font-size:18px;margin-bottom:4px;">📍</div>' +
         '<div style="font-family:\'DM Sans\',sans-serif;font-weight:600;font-size:13px;color:#1d5c4a;">You are here</div>' +
         '<div style="font-family:\'DM Sans\',sans-serif;font-size:11px;color:#9e9894;margin-top:2px;">Your current location</div>' +
       '</div>',
