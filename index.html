@@ -734,51 +734,54 @@
 // CONFIGURATION
 // ═══════════════════════════════════════════════════════════════════════════
 
-var CSV_URL = 'https://raw.githubusercontent.com/kcredit/Refugee-map-test/refs/heads/main/Irish%20Refugee%20Council_CSV_12Jun26.csv';
+var CSV_URL = 'https://raw.githubusercontent.com/kcredit/Refugee-map-test/refs/heads/main/Irish%20Refugee%20Council_CSV_07Jul26.csv';
 
 // Color config — keyed by SUPPORT value (primary) and CATEGORIES variants (fallback).
 // Marker colour and legend are driven by the SUPPORT column; CATEGORIES is used for search/tags.
+// The 15 canonical categories are listed first; aliases/variants follow.
 var CATEGORIES = {
-  "Information & Advice":       { color: "#2563eb", short: "Info & Advice" },
-  "Information":                { color: "#2563eb", short: "Info & Advice" },
-  "Education":                  { color: "#d97706", short: "Education" },
-  "Educational Guidance":       { color: "#d97706", short: "Education" },
+  // ── 15 canonical categories ────────────────────────────────────────────
+  "Information & Advice":              { color: "#2563eb", short: "Information & Advice" },
+  "Education":                         { color: "#d97706", short: "Education" },
+  "Language Support":                  { color: "#0891b2", short: "Language Support" },
+  "Wellbeing & Mental Health":         { color: "#7c3aed", short: "Wellbeing & Mental Health" },
+  "Public Awareness & Activism":       { color: "#ec4899", short: "Public Awareness & Activism" },
+  "Legal Advice":                      { color: "#1e40af", short: "Legal Advice" },
+  "Housing Support":                   { color: "#0d9488", short: "Housing Support" },
+  "Community & Family":                { color: "#9333ea", short: "Community & Family" },
+  "Youth Services":                    { color: "#f59e0b", short: "Youth Services" },
+  "Culture & the Arts":                { color: "#db2777", short: "Culture & the Arts" },
+  "Employment & Training":             { color: "#16a34a", short: "Employment & Training" },
+  "Health Services":                   { color: "#dc2626", short: "Health Services" },
+  "Emergency & Homelessness Support":  { color: "#b91c1c", short: "Emergency & Homelessness Support" },
+  "Environment":                       { color: "#059669", short: "Environment" },
+  "Multiple Services":                 { color: "#475569", short: "Multiple Services" },
+  // ── Aliases / spelling variants in the data ────────────────────────────
+  "Information":                       { color: "#2563eb", short: "Information & Advice" },
+  "Educational Guidance":              { color: "#d97706", short: "Education" },
   "Adult Community Education, Early Years Education, Counselling & Family Support": { color: "#d97706", short: "Education" },
-  "Language Support":           { color: "#0891b2", short: "Language" },
-  "Wellbeing & Mental Health":  { color: "#7c3aed", short: "Mental Health" },
-  "Wellbeing":                  { color: "#7c3aed", short: "Mental Health" },
-  "Chronic Illness and Disability  Support": { color: "#7c3aed", short: "Mental Health" },
-  "Public Awareness & Activism":{ color: "#ec4899", short: "Activism" },
-  "Public Awareness & Activsm": { color: "#ec4899", short: "Activism" },
-  "Legal Advice":               { color: "#1e40af", short: "Legal" },
-  "Court Support":              { color: "#1e40af", short: "Legal" },
-  "Housing support":            { color: "#0d9488", short: "Housing" },
-  "Housing Support":            { color: "#0d9488", short: "Housing" },
-  "Housing":                    { color: "#0d9488", short: "Housing" },
-  "Community & Family":         { color: "#9333ea", short: "Community" },
-  "Community":                  { color: "#9333ea", short: "Community" },
-  "Family Support":             { color: "#9333ea", short: "Community" },
-  "Biblical support and activities for children": { color: "#9333ea", short: "Community" },
-  "Youth Services":             { color: "#f59e0b", short: "Youth" },
-  "Childcare Information":      { color: "#f59e0b", short: "Youth" },
-  "Culture & the Arts":         { color: "#db2777", short: "Culture" },
-  "Employment & Training":      { color: "#16a34a", short: "Employment" },
-  "Employment support":         { color: "#16a34a", short: "Employment" },
-  "Employment":                 { color: "#16a34a", short: "Employment" },
-  "Health Services":            { color: "#dc2626", short: "Health" },
-  "Sexual Health & HIV":        { color: "#0e7490", short: "Sexual Health" },
-  "Emergency & Homelessness Support (e.g. food, shelter, day services)": { color: "#b91c1c", short: "Emergency" },
-  "Emergency & Homelessness Support": { color: "#b91c1c", short: "Emergency" },
-  "Meals":                      { color: "#b91c1c", short: "Emergency" },
-  "Environment":                { color: "#059669", short: "Environment" },
-  "Volunteering Opportunities": { color: "#6366f1", short: "Volunteering" },
-  "Volunteering":               { color: "#6366f1", short: "Volunteering" },
-  "Sport":                      { color: "#15803d", short: "Sport" },
-  "Domestic Abuse Services":    { color: "#be123c", short: "Domestic Abuse" },
-  "Domestic Abuse services":    { color: "#be123c", short: "Domestic Abuse" },
-  "Multiple Services":          { color: "#475569", short: "Multiple Services" },
-  "Multiple services":          { color: "#475569", short: "Multiple Services" },
-  "Other":                      { color: "#64748b", short: "Other" }
+  "Wellbeing":                         { color: "#7c3aed", short: "Wellbeing & Mental Health" },
+  "Chronic Illness and Disability  Support": { color: "#7c3aed", short: "Wellbeing & Mental Health" },
+  "Public Awareness & Activsm":        { color: "#ec4899", short: "Public Awareness & Activism" },
+  "Court Support":                     { color: "#1e40af", short: "Legal Advice" },
+  "Housing support":                   { color: "#0d9488", short: "Housing Support" },
+  "Housing":                           { color: "#0d9488", short: "Housing Support" },
+  "Community":                         { color: "#9333ea", short: "Community & Family" },
+  "Family Support":                    { color: "#9333ea", short: "Community & Family" },
+  "Biblical support and activities for children": { color: "#9333ea", short: "Community & Family" },
+  "Childcare Information":             { color: "#f59e0b", short: "Youth Services" },
+  "Employment support":                { color: "#16a34a", short: "Employment & Training" },
+  "Employment":                        { color: "#16a34a", short: "Employment & Training" },
+  "Sexual Health & HIV":               { color: "#dc2626", short: "Health Services" },
+  "Emergency & Homelessness Support (e.g. food, shelter, day services)": { color: "#b91c1c", short: "Emergency & Homelessness Support" },
+  "Meals":                             { color: "#b91c1c", short: "Emergency & Homelessness Support" },
+  "Volunteering Opportunities":        { color: "#6366f1", short: "Volunteering" },
+  "Volunteering":                      { color: "#6366f1", short: "Volunteering" },
+  "Sport":                             { color: "#15803d", short: "Sport" },
+  "Domestic Abuse Services":           { color: "#be123c", short: "Domestic Abuse" },
+  "Domestic Abuse services":           { color: "#be123c", short: "Domestic Abuse" },
+  "Multiple services":                 { color: "#475569", short: "Multiple Services" },
+  "Other":                             { color: "#64748b", short: "Other" }
 };
 
 var DEFAULT_COLOR = "#64748b";
@@ -832,20 +835,22 @@ function parseCSV(text) {
     return -1;
   }
 
-  var colName     = findCol('Name of the organisation');
-  var colDesc     = findCol('DESCRIPTION');
-  var colKeywords = findCol('KEYWORDS');
-  var colAddr     = findCol('ADDRESS');
-  var colEircode  = findCol('EIRCODE');
-  var colOnline   = findCol('ONLINE ONLY SERVICE');
-  var colWebsite  = findCol('WEBSITE');
-  var colEmail    = findCol('EMAIL');
-  var colPhone    = findCol('TELEPHONE');
-  var colCat      = findCol('CATEGORIES');
-  var colSupport  = findCol('SUPPORT');
-  var colLat      = findCol('latitude');
-  var colLng      = findCol('longitude');
-  var colDropIn   = findCol('DropIn_Info');
+  var colName      = findCol('Name of the organisation');
+  var colDesc      = findCol('DESCRIPTION');
+  var colKeywords  = findCol('KEYWORDS');
+  var colAddr      = findCol('ADDRESS');
+  var colEircode   = findCol('EIRCODE');
+  var colOnline    = findCol('ONLINE ONLY SERVICE');
+  var colWebsite   = findCol('WEBSITE');
+  var colEmail     = findCol('EMAIL');
+  var colPhone     = findCol('TELEPHONE');
+  var colCat       = findCol('CATEGORIES');
+  var colSupport   = findCol('SUPPORT');
+  var colLat       = findCol('latitude');
+  var colLng       = findCol('longitude');
+  var colDropIn    = findCol('DropIn_Info');
+  var colCounty    = findCol('County');
+  var colDiffSym   = findCol('DIFFERENT SYMBOL');
 
   var currentLine = '';
   for (var i = 1; i < lines.length; i++) {
@@ -874,6 +879,8 @@ function parseCSV(text) {
               categories:  colCat     >= 0 ? values[colCat]     || '' : '',
               support:     colSupport >= 0 ? values[colSupport] || '' : '',
               dropIn:      colDropIn  >= 0 ? values[colDropIn]  || '' : '',
+              county:      colCounty  >= 0 ? values[colCounty]  || '' : '',
+              diffSymbol:  colDiffSym >= 0 ? values[colDiffSym] || '' : '',
               lat: lat,
               lng: lng
             });
@@ -979,6 +986,19 @@ function makeIcon(color) {
   });
 }
 
+// Computer/monitor icon for services with DIFFERENT SYMBOL = Yes
+// (organisations without a fixed physical location)
+function makeComputerIcon(color) {
+  var svg = '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="rgba(255,255,255,0.95)" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>';
+  return L.divIcon({
+    className: '',
+    html: '<div style="width:30px;height:26px;background:' + color + ';border-radius:5px;border:2.5px solid rgba(255,255,255,0.85);box-shadow:0 2px 8px rgba(0,0,0,0.3);display:flex;align-items:center;justify-content:center;">' + svg + '</div>',
+    iconSize: [30, 26],
+    iconAnchor: [15, 26],
+    popupAnchor: [0, -28]
+  });
+}
+
 function makePopup(s) {
   var col = getCategoryColor(s.support, s.categories);
   var primaryCat = getPrimaryCategory(s.support, s.categories);
@@ -1066,7 +1086,9 @@ function createMarkers() {
   for (var i = 0; i < SERVICES.length; i++) {
     var s = SERVICES[i];
     var color = getCategoryColor(s.support, s.categories);
-    var marker = L.marker([s.lat, s.lng], { icon: makeIcon(color) });
+    var useDiffIcon = s.diffSymbol && s.diffSymbol.trim().toLowerCase() === 'yes';
+    var icon = useDiffIcon ? makeComputerIcon(color) : makeIcon(color);
+    var marker = L.marker([s.lat, s.lng], { icon: icon });
     marker.bindPopup(makePopup(s), { maxWidth: isMobile ? 280 : 300 });
     marker.addTo(markerLayer);
     markers[i] = marker;
@@ -1211,6 +1233,7 @@ function renderList(query) {
 
     var matchSearch = !q ||
       (s.name        || '').toLowerCase().indexOf(q) !== -1 ||
+      (s.county      || '').toLowerCase().indexOf(q) !== -1 ||
       (s.address     || '').toLowerCase().indexOf(q) !== -1 ||
       (s.categories  || '').toLowerCase().indexOf(q) !== -1 ||
       (s.description || '').toLowerCase().indexOf(q) !== -1 ||
