@@ -1041,11 +1041,17 @@ function makePopup(s) {
   if (!isBlank(s.dropIn)) {
     html += '<div class="popup-row"><span class="popup-label">Drop-in</span><span class="popup-val">' + escapeHtml(s.dropIn) + '</span></div>';
   }
-  if (!isBlank(address)) {
-    html += '<div class="popup-row"><span class="popup-label">Address</span><span class="popup-val">' + address + '</span></div>';
-  }
-  if (!isBlank(s.eircode)) {
-    html += '<div class="popup-row"><span class="popup-label">Eircode</span><span class="popup-val">' + escapeHtml(s.eircode) + '</span></div>';
+  if (isOnlineOnly) {
+    if (!isBlank(s.county)) {
+      html += '<div class="popup-row"><span class="popup-label">County</span><span class="popup-val">' + escapeHtml(s.county) + '</span></div>';
+    }
+  } else {
+    if (!isBlank(address)) {
+      html += '<div class="popup-row"><span class="popup-label">Address</span><span class="popup-val">' + address + '</span></div>';
+    }
+    if (!isBlank(s.eircode)) {
+      html += '<div class="popup-row"><span class="popup-label">Eircode</span><span class="popup-val">' + escapeHtml(s.eircode) + '</span></div>';
+    }
   }
   html += '<div class="popup-row"><span class="popup-label">Service</span><span class="popup-val">' + onlineHtml + '</span></div>';
   if (!isBlank(phone)) {
@@ -1279,7 +1285,10 @@ function renderList(query) {
     item.dataset.idx = idx;
 
     var shortCat  = CATEGORIES[primaryCat] ? CATEGORIES[primaryCat].short : escapeHtml(primaryCat);
-    var shortAddr = (!isBlank(address)) ? escapeHtml(address.substring(0, 35)) + (address.length > 35 ? '...' : '') : '';
+    var addrDisplay = isOnlineOnly
+      ? (s.county || '')
+      : address;
+    var shortAddr = (!isBlank(addrDisplay)) ? escapeHtml(addrDisplay.substring(0, 35)) + (addrDisplay.length > 35 ? '...' : '') : '';
 
     item.innerHTML =
       '<div class="org-item-header">' +
