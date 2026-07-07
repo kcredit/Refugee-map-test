@@ -1242,8 +1242,7 @@ function renderList(query) {
 
     var passesBaseFilters = matchCat && matchSearch && matchOnline;
 
-    // Online-only services never appear as map pins — button only filters the list
-    var showOnMap = passesBaseFilters && !isOnline;
+    var showOnMap = passesBaseFilters;
 
     if (showOnMap) {
       if (!markerLayer.hasLayer(markers[i])) markerLayer.addLayer(markers[i]);
